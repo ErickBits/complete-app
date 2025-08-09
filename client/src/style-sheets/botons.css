@@ -1,0 +1,20 @@
+.btn-effect-5 { 
+    border: 2px solid #3ae374; 
+    background: transparent; 
+    color: #3ae374; 
+}
+
+.btn-effect-5::before {
+    content: ''; 
+    position: absolute; 
+    top: 0; 
+    left: 0;
+    width: 0; 
+    height: 100%; 
+    background: #3ae374;
+    z-index: -1; 
+    transition: 0.5s;
+}
+
+.btn-effect-5:hover { color: #000; }
+.btn-effect-5:hover::before { width: 100%; }
