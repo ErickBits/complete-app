@@ -9,4 +9,4 @@ route.get('/profile', compareToken, user_controller.profile);
 route.put('/update', compareToken, user_controller.update);
 route.delete('/delete', compareToken, user_controller.delete);
 
-export default route;
+export default route;  

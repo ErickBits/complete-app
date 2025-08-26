@@ -108,7 +108,7 @@ class user_controller {
         return res.status(200).send({
             email: user.email,
             name: user.name,
-            lastname: user.lastname
+            lastname: user.lastname 
         });
 
     }
