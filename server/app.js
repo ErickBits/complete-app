@@ -7,7 +7,6 @@ import cors from 'cors';
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/bread_network', route);
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -15,6 +14,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
+
+app.use('/bread_network', route);
 
 connectDB();
 
