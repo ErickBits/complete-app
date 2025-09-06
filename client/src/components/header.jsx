@@ -9,9 +9,6 @@ function Header() {
             </div>
             <nav id="nav-bar">
                 <ul className="nav-bar-control">
-                    <li className="nav-link up-grd">
-                        <Link className="up-grd" to="/upgrade">Upgrade</Link>
-                    </li>
                     <li className="nav-link">
                         <Link className="link" to="/register">Log-in</Link>
                     </li>
