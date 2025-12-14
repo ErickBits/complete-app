@@ -9,7 +9,12 @@ export function compareToken(req,res,next) {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-        return res.status(401).send('Error: invalid token');
+        return res.status(401).send({
+                "mesage": 'There is no token in this ...',
+                token: token
+            }
+        );
+        return res.status(200).send();
     }
 
     try {
