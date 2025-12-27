@@ -14,7 +14,6 @@ export function compareToken(req,res,next) {
                 token: token
             }
         );
-        return res.status(200).send();
     }
 
     try {

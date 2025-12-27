@@ -1,4 +1,4 @@
-function Inputs({placeholder,value,onChange,type}) {
+function Input({placeholder,value,onChange,type}) {
 
   return (
     <div>
@@ -13,4 +13,4 @@ function Inputs({placeholder,value,onChange,type}) {
   );
 }   
 
-export default Inputs;
+export default Input;

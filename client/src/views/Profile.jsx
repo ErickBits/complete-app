@@ -4,12 +4,16 @@ function Profile({ name, email, lastname }) {
   // estado opcional para mostrar lo que trae la API
   const [user, setUser] = useState(null);
 
-  // función showData exactamente como la quieres usar
+  // función showData 
   async function showData() {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:5100/bread_network/profile', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();

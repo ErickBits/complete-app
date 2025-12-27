@@ -7,33 +7,37 @@ function SignUp() {
     const [password,setPassword] = useState('');
 
     async function LogIn(e) {
-        e.preventDefault();
-
-        const Data = {
-            email,
-            password
-        }
+    e.preventDefault();
+        const Data = { email, password };
 
         try {
             const response = await fetch("http://localhost:5100/bread_network/login", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(Data)
-            })
-            
-        if(!response.ok) throw new Error('Network response was not ok');
+            });
 
-        const result = await response.json();
-        console.log('User loged:', result);
-        alert('User loged successfully!');  
+            // Leer el body UNA sola vez
+            const result = await response.json();
 
+            // Manejar error HTTP antes de usar result
+            if (!response.ok) {
+                throw new Error(result?.message || `HTTP ${response.status}`);
+            }
+
+            // Guardar token y continuar
+            const token = result.token;
+            if (token) localStorage.setItem('token', token);
+
+            console.log('User logged:', result);
+            alert('User logged successfully!');
+            // aquí puedes redirigir o actualizar estado global
         } catch (error) {
             console.error('Error:', error);
+            alert(`Login failed: ${error.message}`);
         }
+    }
 
-        }
 
     return (
         <div className="main-div">
