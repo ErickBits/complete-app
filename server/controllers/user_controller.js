@@ -66,7 +66,7 @@ class user_controller {
             return res.status(400).send('user not found');
         }
 
-        const hash = await bcrypt.hash(password,10);
+        const hash = await bcrypt.hash(password,10); 
         
         const data = await user_model.update(user._id,{
             email,
@@ -75,8 +75,7 @@ class user_controller {
             password: hash
         })
 
-        return res.status(200).send(data);
-
+        return res.status(200).send(data);  //hola
     }
 
     async delete(req, res) {
