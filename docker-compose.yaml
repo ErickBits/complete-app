@@ -1,0 +1,24 @@
+services:
+  server:
+    build: ./server
+    container_name: server_app
+    restart: unless-stopped
+    env_file:
+      - ./server/.env
+    ports:
+      - "5100:5100"     
+    networks:
+      - app-network
+
+  client:
+    build: ./client
+    container_name: client_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"      
+    networks: 
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
