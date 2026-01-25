@@ -1,3 +1,4 @@
+/*import*/
 import user_schema from "../schemas/user_schema.js";
 
 class user_model {
@@ -8,7 +9,7 @@ class user_model {
 
     async getone(email) {
         return await user_schema.findOne(email); 
-    }
+    }    
 
     async getoneid(id) {
         return await user_schema.findById(id);
