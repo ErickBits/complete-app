@@ -4,7 +4,7 @@ export default function Hero() {
   return (
     <section className="hero container" aria-labelledby="hero-title">
       <div className="hero-text">
-        <h1 id="hero-title" className="title">Reserva fácil. Cena tranquila.</h1>
+        <h1 id="hero-title" className="title">Disponibilidd de reservación</h1>
         <p className="subtitle">
           Sistema de reservas para restaurantes con roles, panel de administración,
           notificaciones y despliegue en la nube. Rápido de usar, fácil de administrar.
