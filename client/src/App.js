@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './views/Home.jsx';
 import Register from './views/Register.jsx';
 import SignUp from './views/SignUp.jsx';
-import ProfilePage from './views/ProfilePage.jsx';
+import Dashboard from './views/Dashboard.jsx';
 import Profile from './views/Profile.jsx';
 import Update from './views/Update.jsx';
 
@@ -14,7 +14,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/profilePage" element={<ProfilePage />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile/>} />
         <Route path="/update" element={<Update/>} />
       </Routes>
@@ -22,4 +22,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;  
