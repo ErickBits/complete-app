@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import database from './config/database.js';
+import database from './config/db_conection.js';
 import userRoutes from './routes/main_routes.js';
 import reservationRoutes from './routes/reservation_routes.js';
 
@@ -17,7 +17,7 @@ database.connect();
 
 // Rutas
 app.use('/bread_network', userRoutes);
-app.use('/bread_network/reservations', reservationRoutes); // ← NUEVA RUTA
+app.use('/bread_network/reservations', reservationRoutes); 
 
 // Ruta de prueba
 app.get('/', (req, res) => {

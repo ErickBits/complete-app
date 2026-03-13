@@ -25,3 +25,4 @@ USER node
 
 # 8. Comando para arrancar la aplicación
 CMD ["node", "app.js"]
+

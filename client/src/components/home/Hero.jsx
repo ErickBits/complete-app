@@ -10,8 +10,8 @@ export default function Hero() {
           notificaciones y despliegue en la nube. Rápido de usar, fácil de administrar.
         </p>
         <div className="cta-row">
-          <a className="btn primary" href="../../views/SignUp.jsx">Crear cuenta</a>
-          <a className="btn ghost" href="../../views/Register.jsx">Iniciar sesión</a>
+          <a className="btn primary" href="/register">Crear cuenta</a>
+          <a className="btn ghost" href="SignUp">Iniciar sesión</a>
         </div>
       </div>
 

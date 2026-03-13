@@ -1,4 +1,5 @@
 // src/components/Profile.jsx
+import { useNavigate } from 'react-router-dom';
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import "../style-sheets/profile.css"
@@ -10,9 +11,12 @@ import "../style-sheets/profile.css"
  * - Cancela la petición si el componente se desmonta.
  */
 export default function Profile({ name, email, lastname }) {
+  
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
 
   // Función para obtener datos; acepta una señal AbortController.signal
   const fetchProfile = useCallback(async (signal) => {
@@ -71,6 +75,15 @@ export default function Profile({ name, email, lastname }) {
     await fetchProfile(controller.signal);
   };
 
+  const navigate = useNavigate();
+
+  const sendUpdate = async () => {
+    // opcional: await fetch('/api/guardar-cambios', { method: 'POST', body: ... });
+    navigate('/update');               // redirección normal
+    // navigate('/update', { replace: true }); // reemplaza el historial (no permite volver atrás)
+    // navigate('/update', { state: { from: 'perfil' } }); // pasar estado
+  };
+
   // dentro del return de Profile.jsx reemplaza el contenido por:
 return (
   <div className="profile page">
@@ -95,7 +108,7 @@ return (
           </div>
           <div className="actions">
             <button className="btn ghost" onClick={handleRefresh}>Refrescar</button>
-            <button className="btn primary">Editar perfil</button>
+            <button className="btn primary" onClick={sendUpdate}>Editar perfil</button>;
           </div>
         </div>
 

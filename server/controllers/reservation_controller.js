@@ -6,25 +6,24 @@ class reservation_controller {
     async create(req, res) {
         try {
             const token = req.user;
-            const { 
-                customerName, 
-                customerEmail, 
+            const {
+                customerName,
+                customerEmail,
                 customerPhone,
-                tableNumber, 
-                numberOfGuests, 
-                date, 
-                time, 
-                specialRequests 
+                tableNumber,
+                numberOfGuests,
+                date,
+                time,
+                specialRequests
             } = req.body;
 
-            // Validar que la mesa no esté ocupada en esa fecha/hora
             const existingReservation = await reservation_model.getByDateAndTable(
-                new Date(date), 
+                new Date(date),
                 tableNumber
             );
 
             if (existingReservation) {
-                return res.status(400).send('Esta mesa ya está reservada para esta fecha');
+                return res.status(400).json({ error: 'Esta mesa ya está reservada para esta fecha' });
             }
 
             const data = await reservation_model.create({
@@ -39,13 +38,14 @@ class reservation_controller {
                 specialRequests
             });
 
-            return res.status(201).send({
+            return res.status(201).json({
                 message: 'Reservación creada exitosamente',
                 reservation: data
             });
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -54,17 +54,16 @@ class reservation_controller {
         try {
             const token = req.user;
 
-            // Verificar si es admin
             if (token.role !== 'admin') {
-                return res.status(403).send('No tienes permisos para ver todas las reservaciones');
+                return res.status(403).json({ error: 'No tienes permisos para ver todas las reservaciones' });
             }
 
             const reservations = await reservation_model.getAll();
-
-            return res.status(200).send(reservations);
+            return res.status(200).json(reservations);
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -72,13 +71,12 @@ class reservation_controller {
     async getMyReservations(req, res) {
         try {
             const token = req.user;
-
             const reservations = await reservation_model.getByUserId(token._id);
-
-            return res.status(200).send(reservations);
+            return res.status(200).json(reservations);
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -91,18 +89,18 @@ class reservation_controller {
             const reservation = await reservation_model.getById(id);
 
             if (!reservation) {
-                return res.status(404).send('Reservación no encontrada');
+                return res.status(404).json({ error: 'Reservación no encontrada' });
             }
 
-            // Verificar que sea el dueño o admin
             if (reservation.userId._id.toString() !== token._id && token.role !== 'admin') {
-                return res.status(403).send('No tienes permisos para ver esta reservación');
+                return res.status(403).json({ error: 'No tienes permisos para ver esta reservación' });
             }
 
-            return res.status(200).send(reservation);
+            return res.status(200).json(reservation);
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -118,11 +116,11 @@ class reservation_controller {
             endOfDay.setHours(23, 59, 59, 999);
 
             const reservations = await reservation_model.getByDate(startOfDay, endOfDay);
-
-            return res.status(200).send(reservations);
+            return res.status(200).json(reservations);
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -136,11 +134,11 @@ class reservation_controller {
             end.setDate(start.getDate() + 7);
 
             const reservations = await reservation_model.getWeekReservations(start, end);
-
-            return res.status(200).send(reservations);
+            return res.status(200).json(reservations);
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -154,42 +152,36 @@ class reservation_controller {
             const reservation = await reservation_model.getById(id);
 
             if (!reservation) {
-                return res.status(404).send('Reservación no encontrada');
+                return res.status(404).json({ error: 'Reservación no encontrada' });
             }
 
-            // Verificar que sea el dueño o admin
             if (reservation.userId._id.toString() !== token._id && token.role !== 'admin') {
-                return res.status(403).send('No tienes permisos para actualizar esta reservación');
+                return res.status(403).json({ error: 'No tienes permisos para actualizar esta reservación' });
             }
 
-            // Si actualiza fecha/mesa, validar disponibilidad
             if (updates.date || updates.tableNumber) {
-                const dateToCheck = updates.date ? new Date(updates.date) : reservation.date;
+                const dateToCheck  = updates.date        ? new Date(updates.date) : reservation.date;
                 const tableToCheck = updates.tableNumber || reservation.tableNumber;
 
-                const existingReservation = await reservation_model.getByDateAndTable(
-                    dateToCheck,
-                    tableToCheck
-                );
+                const existingReservation = await reservation_model.getByDateAndTable(dateToCheck, tableToCheck);
 
                 if (existingReservation && existingReservation._id.toString() !== id) {
-                    return res.status(400).send('Esta mesa ya está reservada para esta fecha');
+                    return res.status(400).json({ error: 'Esta mesa ya está reservada para esta fecha' });
                 }
             }
 
-            if (updates.date) {
-                updates.date = new Date(updates.date);
-            }
+            if (updates.date) updates.date = new Date(updates.date);
 
             const data = await reservation_model.update(id, updates);
 
-            return res.status(200).send({
+            return res.status(200).json({
                 message: 'Reservación actualizada exitosamente',
                 data
             });
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -203,23 +195,23 @@ class reservation_controller {
             const reservation = await reservation_model.getById(id);
 
             if (!reservation) {
-                return res.status(404).send('Reservación no encontrada');
+                return res.status(404).json({ error: 'Reservación no encontrada' });
             }
 
-            // Verificar que sea el dueño o admin
             if (reservation.userId._id.toString() !== token._id && token.role !== 'admin') {
-                return res.status(403).send('No tienes permisos para cambiar el estado');
+                return res.status(403).json({ error: 'No tienes permisos para cambiar el estado' });
             }
 
             const data = await reservation_model.updateStatus(id, status);
 
-            return res.status(200).send({
+            return res.status(200).json({
                 message: 'Estado actualizado exitosamente',
                 data
             });
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -232,22 +224,20 @@ class reservation_controller {
             const reservation = await reservation_model.getById(id);
 
             if (!reservation) {
-                return res.status(404).send('Reservación no encontrada');
+                return res.status(404).json({ error: 'Reservación no encontrada' });
             }
 
-            // Verificar que sea el dueño o admin
             if (reservation.userId._id.toString() !== token._id && token.role !== 'admin') {
-                return res.status(403).send('No tienes permisos para eliminar esta reservación');
+                return res.status(403).json({ error: 'No tienes permisos para eliminar esta reservación' });
             }
 
             await reservation_model.delete(id);
 
-            return res.status(200).send({
-                message: 'Reservación eliminada exitosamente'
-            });
+            return res.status(200).json({ message: 'Reservación eliminada exitosamente' });
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 
@@ -255,8 +245,6 @@ class reservation_controller {
     async getStats(req, res) {
         try {
             const token = req.user;
-
-            // Solo admin o el propio usuario
             const userId = token.role === 'admin' ? null : token._id;
 
             const today = new Date();
@@ -272,28 +260,27 @@ class reservation_controller {
             endOfWeek.setDate(startOfWeek.getDate() + 7);
 
             const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+            const endOfMonth   = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
 
-            // Estadísticas
             const todayReservations = await reservation_model.countByDateRange(today, endOfToday, userId);
-            const weekReservations = await reservation_model.countByDateRange(startOfWeek, endOfWeek, userId);
+            const weekReservations  = await reservation_model.countByDateRange(startOfWeek, endOfWeek, userId);
             const monthReservations = await reservation_model.countByDateRange(startOfMonth, endOfMonth, userId);
 
-            // Mesas disponibles (asumiendo que tienes 12 mesas)
-            const totalTables = 12;
+            const totalTables    = 12;
             const occupiedTables = await reservation_model.getOccupiedTablesCount(today, endOfToday);
             const availableTables = totalTables - occupiedTables;
 
-            return res.status(200).send({
+            return res.status(200).json({
                 todayReservations,
                 weekReservations,
-                monthReservations,
+                totalReservations: monthReservations,
                 totalTables,
                 availableTables
             });
 
         } catch (error) {
-            return res.status(500).send('Server error');
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
         }
     }
 }
