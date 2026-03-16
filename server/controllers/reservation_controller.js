@@ -1,4 +1,5 @@
 import reservation_model from '../models/reservation_model.js';
+import user_model from '../models/user_model.js'; 
 
 class reservation_controller {
 
@@ -87,6 +88,7 @@ class reservation_controller {
             const token = req.user;
 
             const reservation = await reservation_model.getById(id);
+
 
             if (!reservation) {
                 return res.status(404).json({ error: 'Reservación no encontrada' });
@@ -241,41 +243,182 @@ class reservation_controller {
         }
     }
 
-    // Obtener estadísticas (dashboard)
-    async getStats(req, res) {
+    // Obtener estadísticas (automáticamente detecta si es admin o usuario)
+    async getStatistics(req, res) {
         try {
             const token = req.user;
-            const userId = token.role === 'admin' ? null : token._id;
+            const isAdmin = token.role === 'admin';
+
+            if (isAdmin) {
+                // Estadísticas para Admin
+                return await this.getAdminStatistics(req, res);
+            } else {
+                // Estadísticas para Usuario Regular
+                return await this.getUserStatistics(req, res);
+            }
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
+        }
+    }
+
+    // Estadísticas para Admin
+    async getAdminStatistics(req, res) {
+        try {
+            // ⭐ AGREGAR ESTA LÍNEA - Obtener stats de usuarios
+            const userStats = await user_model.getStats();
+
+            // Obtener stats generales de reservaciones
+            const generalStats = await reservation_model.getGeneralStats();
+
+            // Obtener todas las reservaciones para análisis
+            const allReservations = await reservation_model.getAllWithDetails();
+
+            // Análisis por día de la semana
+            const byDay = Array(7).fill(0);
+            allReservations.forEach(r => {
+                const day = new Date(r.date).getDay();
+                byDay[day]++;
+            });
+
+            // Top mesas más reservadas
+            const tableCount = {};
+            allReservations.forEach(r => {
+                tableCount[r.tableNumber] = (tableCount[r.tableNumber] || 0) + 1;
+            });
+            const topTables = Object.entries(tableCount)
+                .map(([table, count]) => ({ table: parseInt(table), count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5);
+
+            // Tendencia mensual (últimos 6 meses)
+            const today = new Date();
+            const monthlyTrend = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const monthStart = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const monthEnd = new Date(today.getFullYear(), today.getMonth() - i + 1, 0, 23, 59, 59);
+                
+                const count = allReservations.filter(r => {
+                    const resDate = new Date(r.date);
+                    return resDate >= monthStart && resDate <= monthEnd;
+                }).length;
+
+                monthlyTrend.push({
+                    month: monthStart.getMonth(),
+                    year: monthStart.getFullYear(),
+                    count
+                });
+            }
+
+            // Mesas disponibles (asumiendo 12 mesas totales)
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const todayEnd = new Date();
+            todayEnd.setHours(23, 59, 59, 999);
+            const occupiedTables = await reservation_model.getOccupiedTablesCount(todayStart, todayEnd);
+            const availableTables = 12 - occupiedTables;
+
+            return res.status(200).json({
+                role: 'admin',
+                // ⭐ AGREGAR ESTAS TRES LÍNEAS - Stats de usuarios
+                totalUsers: userStats.totalUsers,
+                adminUsers: userStats.adminUsers,
+                regularUsers: userStats.regularUsers,
+                // Stats de reservaciones
+                totalReservations: generalStats.total,
+                pendingReservations: generalStats.pending,
+                confirmedReservations: generalStats.confirmed,
+                cancelledReservations: generalStats.cancelled,
+                completedReservations: generalStats.completed,
+                todayReservations: generalStats.today,
+                availableTables,
+                reservationsByDay: byDay,
+                topTables,
+                monthlyTrend
+            });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Server error' });
+        }
+    }
+
+    // Estadísticas para Usuario Regular
+    async getUserStatistics(req, res) {
+        try {
+            const token = req.user;
+            
+            // Obtener reservaciones del usuario
+            const userReservations = await reservation_model.getUserReservationsWithDetails(token._id);
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const endOfToday = new Date();
-            endOfToday.setHours(23, 59, 59, 999);
+            // Contar por estado
+            const pending = userReservations.filter(r => r.status === 'pending').length;
+            const confirmed = userReservations.filter(r => r.status === 'confirmed').length;
+            const cancelled = userReservations.filter(r => r.status === 'cancelled').length;
+            const completed = userReservations.filter(r => r.status === 'completed').length;
 
-            const startOfWeek = new Date(today);
-            startOfWeek.setDate(today.getDate() - today.getDay());
+            // Próximas y pasadas
+            const upcoming = userReservations.filter(r => 
+                new Date(r.date) >= today && (r.status === 'pending' || r.status === 'confirmed')
+            ).length;
 
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 7);
+            const past = userReservations.filter(r => 
+                new Date(r.date) < today
+            ).length;
 
-            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            const endOfMonth   = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+            // Análisis por día de la semana
+            const byDay = Array(7).fill(0);
+            userReservations.forEach(r => {
+                const day = new Date(r.date).getDay();
+                byDay[day]++;
+            });
 
-            const todayReservations = await reservation_model.countByDateRange(today, endOfToday, userId);
-            const weekReservations  = await reservation_model.countByDateRange(startOfWeek, endOfWeek, userId);
-            const monthReservations = await reservation_model.countByDateRange(startOfMonth, endOfMonth, userId);
+            // Tendencia mensual (últimos 6 meses)
+            const monthlyTrend = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const monthStart = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const monthEnd = new Date(today.getFullYear(), today.getMonth() - i + 1, 0, 23, 59, 59);
+                
+                const count = userReservations.filter(r => {
+                    const resDate = new Date(r.date);
+                    return resDate >= monthStart && resDate <= monthEnd;
+                }).length;
 
-            const totalTables    = 12;
-            const occupiedTables = await reservation_model.getOccupiedTablesCount(today, endOfToday);
-            const availableTables = totalTables - occupiedTables;
+                monthlyTrend.push({
+                    month: monthStart.getMonth(),
+                    year: monthStart.getFullYear(),
+                    count
+                });
+            }
+
+            // Mesas favoritas del usuario
+            const tableCount = {};
+            userReservations.forEach(r => {
+                tableCount[r.tableNumber] = (tableCount[r.tableNumber] || 0) + 1;
+            });
+            const favoriteTables = Object.entries(tableCount)
+                .map(([table, count]) => ({ table: parseInt(table), count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3);
 
             return res.status(200).json({
-                todayReservations,
-                weekReservations,
-                totalReservations: monthReservations,
-                totalTables,
-                availableTables
+                role: 'user',
+                totalReservations: userReservations.length,
+                upcomingReservations: upcoming,
+                pastReservations: past,
+                pendingReservations: pending,
+                confirmedReservations: confirmed,
+                cancelledReservations: cancelled,
+                completedReservations: completed,
+                reservationsByDay: byDay,
+                monthlyTrend,
+                favoriteTables
             });
 
         } catch (error) {

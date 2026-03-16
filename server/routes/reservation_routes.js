@@ -17,7 +17,7 @@ router.get('/all', reservation_controller.getAll);
 router.get('/my-reservations', reservation_controller.getMyReservations);
 
 // Obtener estadísticas para dashboard
-router.get('/stats', reservation_controller.getStats);  
+router.get('/statistics', reservation_controller.getStatistics); 
 
 // Obtener reservaciones por día
 router.get('/day/:date', reservation_controller.getByDay);

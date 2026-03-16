@@ -112,6 +112,120 @@ class user_controller {
 
     }
 
+    // ADMIN: Obtener todos los usuarios
+    async getAllUsers(req, res) {
+        try {
+            const token = req.user;
+
+            // Verificar que sea admin
+            if (token.role !== 'admin') {
+                return res.status(403).send('No tienes permisos de administrador');
+            }
+
+            const users = await user_model.getAll();
+
+            return res.status(200).send(users);
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).send('Server error');
+        }
+    }
+
+    // ADMIN: Buscar usuarios
+    async searchUsers(req, res) {
+        try {
+            const token = req.user;
+            const { search } = req.query;
+
+            if (token.role !== 'admin') {
+                return res.status(403).send('No tienes permisos de administrador');
+            }
+
+            const users = await user_model.search(search);
+
+            return res.status(200).send(users);
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).send('Server error');
+        }
+    }
+
+    // ADMIN: Eliminar usuario por ID
+    async deleteUserById(req, res) {
+        try {
+            const token = req.user;
+            const { id } = req.params;
+
+            if (token.role !== 'admin') {
+                return res.status(403).send('No tienes permisos de administrador');
+            }
+
+            // No permitir que el admin se elimine a sí mismo
+            if (token._id === id) {
+                return res.status(400).send('No puedes eliminar tu propia cuenta de administrador');
+            }
+
+            const user = await user_model.getoneid(id);
+
+            if (!user) {
+                return res.status(404).send('Usuario no encontrado');
+            }
+
+            await user_model.delete(id);
+
+            return res.status(200).send({ message: 'Usuario eliminado exitosamente' });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).send('Server error');
+        }
+    }
+
+    // ADMIN: Obtener estadísticas de usuarios
+    async getUserStats(req, res) {
+        try {
+            const token = req.user;
+
+            if (token.role !== 'admin') {
+                return res.status(403).send('No tienes permisos de administrador');
+            }
+
+            const stats = await user_model.getStats();
+
+            return res.status(200).send(stats);
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).send('Server error');
+        }
+    }
+
+    // ADMIN: Obtener usuario con sus reservaciones
+    async getUserWithReservations(req, res) {
+        try {
+            const token = req.user;
+            const { id } = req.params;
+
+            if (token.role !== 'admin') {
+                return res.status(403).send('No tienes permisos de administrador');
+            }
+
+            const user = await user_model.getUserWithReservations(id);
+
+            if (!user) {
+                return res.status(404).send('Usuario no encontrado');
+            }
+
+            return res.status(200).send(user);
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).send('Server error');
+        }
+    }
+
 }
 
 export default new user_controller();

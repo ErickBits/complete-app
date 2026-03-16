@@ -66,6 +66,69 @@ class reservation_model {
         }).sort({ date: 1, time: 1 });
     }
 
+    // Obtener estadísticas generales (admin)
+    async getGeneralStats() {
+        const total = await reservation_schema.countDocuments();
+        const pending = await reservation_schema.countDocuments({ status: 'pending' });
+        const confirmed = await reservation_schema.countDocuments({ status: 'confirmed' });
+        const cancelled = await reservation_schema.countDocuments({ status: 'cancelled' });
+        const completed = await reservation_schema.countDocuments({ status: 'completed' });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const todayCount = await reservation_schema.countDocuments({
+            date: { $gte: today, $lte: endOfToday }
+        });
+
+        return {
+            total,
+            pending,
+            confirmed,
+            cancelled,
+            completed,
+            today: todayCount
+        };
+    }
+
+    // Obtener todas las reservaciones con información completa (para análisis)
+    async getAllWithDetails() {
+        return await reservation_schema.find()
+            .populate('userId', 'name email role')
+            .sort({ date: -1 });
+    }
+
+    // Obtener reservaciones de un usuario con detalles (para análisis personal)
+    async getUserReservationsWithDetails(userId) {
+        return await reservation_schema.find({ userId })
+            .sort({ date: -1 });
+    }
+
+    // Contar reservaciones por rango de fecha
+    async countByDateRange(startDate, endDate, userId = null) {
+        const query = {
+            date: { $gte: startDate, $lte: endDate }
+        };
+        
+        if (userId) {
+            query.userId = userId;
+        }
+
+        return await reservation_schema.countDocuments(query);
+    }
+
+    // Obtener mesas ocupadas en un rango de fecha
+    async getOccupiedTablesCount(startDate, endDate) {
+        const reservations = await reservation_schema.find({
+            date: { $gte: startDate, $lte: endDate },
+            status: { $in: ['pending', 'confirmed'] }
+        }).distinct('tableNumber');
+
+        return reservations.length;
+    }
+
 }
 
 export default new reservation_model();

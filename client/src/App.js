@@ -6,6 +6,10 @@ import SignUp from './views/SignUp.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import Profile from './views/Profile.jsx';
 import Update from './views/Update.jsx';
+import Reservations from './views/Rerservations.jsx';
+import AdminUsers from './views/Admin_users.jsx';
+import AdminReservations from './views/Admin_reservations.jsx';
+import Statistics from './views/Statistics.jsx';
 
 function App() {
   return (
@@ -17,6 +21,10 @@ function App() {
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile/>} />
         <Route path="/update" element={<Update/>} />
+        <Route path="/reservations" element={<Reservations/>} />
+        <Route path="/statistics" element={<Statistics />} />
+        <Route path="/admin/users" element={<AdminUsers/>} />
+        <Route path="/admin/reservations" element={<AdminReservations/>} />
       </Routes>
     </Router>
   );
