@@ -243,36 +243,36 @@ class reservation_controller {
         }
     }
 
-    // Obtener estadísticas (automáticamente detecta si es admin o usuario)
-    async getStatistics(req, res) {
+    // Detectar tipo de usuario y asignar metodo para obtener estadisticas.
+    getStatistics = async (req, res) => {
         try {
+            console.log('=== INICIO getStatistics ===');
             const token = req.user;
             const isAdmin = token.role === 'admin';
 
+            console.log('¿Es admin?', isAdmin);
+
             if (isAdmin) {
-                // Estadísticas para Admin
+                console.log('Llamando a getAdminStatistics...');
                 return await this.getAdminStatistics(req, res);
             } else {
-                // Estadísticas para Usuario Regular
+                console.log('Llamando a getUserStatistics...');
                 return await this.getUserStatistics(req, res);
             }
 
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Server error' });
+            console.error('❌ ERROR EN getStatistics:', error);
+            return res.status(500).json({ error: 'Server error', details: error.message });
         }
     }
 
-    // Estadísticas para Admin
-    async getAdminStatistics(req, res) {
+    // Estadisticas de el usuario Admin
+    getAdminStatistics = async (req, res) => {
         try {
-            // ⭐ AGREGAR ESTA LÍNEA - Obtener stats de usuarios
+            console.log('--- Inicio getAdminStatistics ---');
+            
             const userStats = await user_model.getStats();
-
-            // Obtener stats generales de reservaciones
             const generalStats = await reservation_model.getGeneralStats();
-
-            // Obtener todas las reservaciones para análisis
             const allReservations = await reservation_model.getAllWithDetails();
 
             // Análisis por día de la semana
@@ -312,7 +312,6 @@ class reservation_controller {
                 });
             }
 
-            // Mesas disponibles (asumiendo 12 mesas totales)
             const todayStart = new Date();
             todayStart.setHours(0, 0, 0, 0);
             const todayEnd = new Date();
@@ -320,13 +319,11 @@ class reservation_controller {
             const occupiedTables = await reservation_model.getOccupiedTablesCount(todayStart, todayEnd);
             const availableTables = 12 - occupiedTables;
 
-            return res.status(200).json({
+            const response = {
                 role: 'admin',
-                // ⭐ AGREGAR ESTAS TRES LÍNEAS - Stats de usuarios
                 totalUsers: userStats.totalUsers,
                 adminUsers: userStats.adminUsers,
                 regularUsers: userStats.regularUsers,
-                // Stats de reservaciones
                 totalReservations: generalStats.total,
                 pendingReservations: generalStats.pending,
                 confirmedReservations: generalStats.confirmed,
@@ -337,32 +334,33 @@ class reservation_controller {
                 reservationsByDay: byDay,
                 topTables,
                 monthlyTrend
-            });
+            };
+
+            console.log('✅ Respuesta admin:', response);
+            return res.status(200).json(response);
 
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Server error' });
+            console.error('❌ ERROR EN getAdminStatistics:', error);
+            return res.status(500).json({ error: 'Server error', details: error.message });
         }
     }
 
-    // Estadísticas para Usuario Regular
-    async getUserStatistics(req, res) {
+    // Estadisticas de el usuario cliente
+    getUserStatistics = async (req, res) => {
         try {
+            console.log('--- Inicio getUserStatistics ---');
             const token = req.user;
             
-            // Obtener reservaciones del usuario
             const userReservations = await reservation_model.getUserReservationsWithDetails(token._id);
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Contar por estado
             const pending = userReservations.filter(r => r.status === 'pending').length;
             const confirmed = userReservations.filter(r => r.status === 'confirmed').length;
             const cancelled = userReservations.filter(r => r.status === 'cancelled').length;
             const completed = userReservations.filter(r => r.status === 'completed').length;
 
-            // Próximas y pasadas
             const upcoming = userReservations.filter(r => 
                 new Date(r.date) >= today && (r.status === 'pending' || r.status === 'confirmed')
             ).length;
@@ -371,14 +369,12 @@ class reservation_controller {
                 new Date(r.date) < today
             ).length;
 
-            // Análisis por día de la semana
             const byDay = Array(7).fill(0);
             userReservations.forEach(r => {
                 const day = new Date(r.date).getDay();
                 byDay[day]++;
             });
 
-            // Tendencia mensual (últimos 6 meses)
             const monthlyTrend = [];
             
             for (let i = 5; i >= 0; i--) {
@@ -397,7 +393,6 @@ class reservation_controller {
                 });
             }
 
-            // Mesas favoritas del usuario
             const tableCount = {};
             userReservations.forEach(r => {
                 tableCount[r.tableNumber] = (tableCount[r.tableNumber] || 0) + 1;
@@ -407,8 +402,9 @@ class reservation_controller {
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 3);
 
-            return res.status(200).json({
+            const response = {
                 role: 'user',
+                myReservations: userReservations.length,
                 totalReservations: userReservations.length,
                 upcomingReservations: upcoming,
                 pastReservations: past,
@@ -419,11 +415,14 @@ class reservation_controller {
                 reservationsByDay: byDay,
                 monthlyTrend,
                 favoriteTables
-            });
+            };
+
+            console.log('✅ Respuesta usuario:', response);
+            return res.status(200).json(response);
 
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: 'Server error' });
+            console.error('❌ ERROR EN getUserStatistics:', error);
+            return res.status(500).json({ error: 'Server error', details: error.message });
         }
     }
 }
