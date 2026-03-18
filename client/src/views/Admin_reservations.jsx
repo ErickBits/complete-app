@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../style-sheets/Admin_reservations.css";
 
 function AdminReservations() {
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState([]);
   const [filteredReservations, setFilteredReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +47,7 @@ function AdminReservations() {
       
       if (!token) {
         setError('No has iniciado sesión');
+        navigate('/signin');
         return;
       }
 

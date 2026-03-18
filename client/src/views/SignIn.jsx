@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Input from "../components/Input.jsx";
 import Button from "../components/Button.jsx";
-import "../style-sheets/sign_up.css";
+import "../style-sheets/sign_in.css";
 
 function Login() {
   const [email, setEmail] = useState('');

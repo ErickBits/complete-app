@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../style-sheets/Reservations.css";
 
 function MyReservations() {
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState([]);
   const [filteredReservations, setFilteredReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +38,7 @@ function MyReservations() {
       if (!token) {
         setError('No has iniciado sesión');
         setIsLoading(false);
+        navigate('/signin');
         return;
       }
 
@@ -182,7 +185,7 @@ function MyReservations() {
             <p className="page-subtitle">Gestiona todas tus reservaciones de restaurante</p>
           </div>
         </div>
-        <button className="new-reservation-btn" onClick={() => window.location.href = '/dashboard'}>
+        <button className="new-reservation-btn" onClick={() => window.location.href = '/new'}>
           <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
@@ -317,7 +320,7 @@ function MyReservations() {
                 ? 'No tienes reservaciones aún' 
                 : `No tienes reservaciones ${getStatusBadge(filterStatus).text.toLowerCase()}`}
             </p>
-            <button className="empty-action-btn" onClick={() => window.location.href = '/dashboard'}>
+            <button className="empty-action-btn" onClick={() => window.location.href = '/new'}>
               Crear tu primera reservación
             </button>
           </div>

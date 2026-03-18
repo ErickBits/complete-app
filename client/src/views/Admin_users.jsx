@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../style-sheets/Admin_users.css";
 
 function AdminUsers() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +35,7 @@ function AdminUsers() {
       
       if (!token) {
         setError('No has iniciado sesión');
+        navigate('/signin');
         return;
       }
 

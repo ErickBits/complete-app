@@ -30,7 +30,7 @@ function MainDashboard() {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        navigate('/login');
+        navigate('/signin');
         return;
       }
 
@@ -90,7 +90,7 @@ function MainDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/SignUp');
+    navigate('/');
   };
 
   const navigateTo = (path) => {
@@ -332,7 +332,7 @@ function MainDashboard() {
           <div className="actions-grid">
             <button 
               className="action-card action-my-reservations"
-              onClick={() => navigateTo('/my-reservations')}
+              onClick={() => navigateTo('/reservations')}
             >
               <div className="action-icon-wrapper">
                 <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +352,7 @@ function MainDashboard() {
 
             <button 
               className="action-card action-new-reservation"
-              onClick={() => navigateTo('/reservations')}
+              onClick={() => navigateTo('/new')}
             >
               <div className="action-icon-wrapper">
                 <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

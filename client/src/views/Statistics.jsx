@@ -41,7 +41,7 @@ function Statistics() {
         const token = localStorage.getItem('token');
         
         if (!token) {
-            window.location.href = '/SignUp';
+            window.location.href = '/signin';
             return;
         }
 
