@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: back-end-svc
+  labels:
+    app: back-end
+spec:
+  type: ClusterIP
+  selector:
+    app: back-end
+  ports:
+    - name: http
+      port: 5100
+      targetPort: 5100
+      protocol: TCP

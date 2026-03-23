@@ -272,7 +272,7 @@ function Profile() {
                 </svg>
               </div>
               <div className="stat-content">
-                <p className="stat-label">Canceladas</p>
+                <p className="stat-label">Canceladas</p>  
                 <p className="stat-value">{stats.cancelledReservations}</p>
               </div>
             </div>
